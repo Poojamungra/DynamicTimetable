@@ -11,36 +11,60 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background: #f4f4f4;
         }
 
         form {
             max-width: 500px;
-            margin: 0 auto;
+            margin: 30px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
 
         input {
             width: 100%;
-            margin: 5px 0;
-            padding: 8px;
+            margin: 10px 0;
+            padding: 10px;
             box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         button {
             padding: 10px 20px;
-            margin-top: 10px;
+            margin: 10px 5px 0;
             cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #3498db;
+            color: white;
+            transition: background 0.2s;
         }
+
+            button:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+            button:hover:not(:disabled) {
+                background: #2980b9;
+            }
 
         #errorMessage {
             color: red;
             margin-bottom: 15px;
         }
+
+        h3 {
+            color: #2c3e50;
+        }
     </style>
 </head>
 <body>
-    <h1>Dynamic Timetable Generator</h1>
-    <div id="errorMessage"></div>
-    <p>Note: The 'Generate Timetable' button will be enabled once the total subject hours match the total weekly hours.</p>
+    <h1 style="text-align: center;">Dynamic Timetable Generator</h1>
+    <div id="errorMessage" style="text-align: center;"></div>
 
     <!-- Step 1: Basic Information -->
     <form id="step1" onsubmit="generateTotalHours(event)">
@@ -56,19 +80,23 @@
         <label for="totalSubjects">Total Subjects:</label>
         <input type="number" id="totalSubjects" min="1" required>
 
-        <label for="totalHours">Total Hours for Week:</label>
-        <input type="number" id="totalHours" readonly>
+        <!-- Hidden Total Hours -->
+        <input type="hidden" id="totalHours" readonly>
 
         <button type="submit">Next</button>
     </form>
 
     <!-- Step 2: Subject Hours Allocation -->
     <form id="step2" method="post" action="/Timetable/GenerateTimetable" style="display:none">
+        <h3>Total Weekly Hours: <span id="displayTotalHours"></span></h3>
+
         <input type="hidden" id="hiddenClassName" name="className">
         <input type="hidden" id="hiddenWorkingDays" name="workingDays">
         <input type="hidden" id="hiddenSubjectsPerDay" name="subjectsPerDay">
         <input type="hidden" id="hiddenTotalSubjects" name="totalSubjects">
+
         <div id="subjectHoursContainer"></div>
+        <button type="button" onclick="goBack()">Back</button>
         <button type="submit" id="generateBtn" disabled>Generate Timetable</button>
     </form>
 
@@ -81,6 +109,7 @@
             const totalSubjects = parseInt(document.getElementById('totalSubjects').value);
             const errorMessage = document.getElementById('errorMessage');
 
+            // Validation
             if (!className || workingDays < 1 || workingDays > 7 || subjectsPerDay < 1 || subjectsPerDay > 8 || totalSubjects < 1) {
                 errorMessage.textContent = "Please enter valid inputs.";
                 return;
@@ -88,6 +117,7 @@
 
             const totalHours = workingDays * subjectsPerDay;
             document.getElementById('totalHours').value = totalHours;
+            document.getElementById('displayTotalHours').textContent = totalHours;
 
             // Pass data to second form
             document.getElementById('hiddenClassName').value = className;
@@ -115,6 +145,11 @@
                 generateBtn.disabled = enteredHours !== totalHours;
                 errorMessage.textContent = enteredHours !== totalHours ? "Total subject hours must match total weekly hours!" : "";
             });
+        }
+
+        function goBack() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
         }
     </script>
 </body>
