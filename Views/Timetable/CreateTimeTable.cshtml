@@ -1,0 +1,121 @@
+﻿@model dynamic
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dynamic Timetable Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        input {
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #errorMessage {
+            color: red;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dynamic Timetable Generator</h1>
+    <div id="errorMessage"></div>
+    <p>Note: The 'Generate Timetable' button will be enabled once the total subject hours match the total weekly hours.</p>
+
+    <!-- Step 1: Basic Information -->
+    <form id="step1" onsubmit="generateTotalHours(event)">
+        <label for="className">Class Name:</label>
+        <input type="text" id="className" required>
+
+        <label for="workingDays">No of Working Days (1-7):</label>
+        <input type="number" id="workingDays" min="1" max="7" required>
+
+        <label for="subjectsPerDay">No of Subjects per Day (1-8):</label>
+        <input type="number" id="subjectsPerDay" min="1" max="8" required>
+
+        <label for="totalSubjects">Total Subjects:</label>
+        <input type="number" id="totalSubjects" min="1" required>
+
+        <label for="totalHours">Total Hours for Week:</label>
+        <input type="number" id="totalHours" readonly>
+
+        <button type="submit">Next</button>
+    </form>
+
+    <!-- Step 2: Subject Hours Allocation -->
+    <form id="step2" method="post" action="/Timetable/GenerateTimetable" style="display:none">
+        <input type="hidden" id="hiddenClassName" name="className">
+        <input type="hidden" id="hiddenWorkingDays" name="workingDays">
+        <input type="hidden" id="hiddenSubjectsPerDay" name="subjectsPerDay">
+        <input type="hidden" id="hiddenTotalSubjects" name="totalSubjects">
+        <div id="subjectHoursContainer"></div>
+        <button type="submit" id="generateBtn" disabled>Generate Timetable</button>
+    </form>
+
+    <script>
+        function generateTotalHours(event) {
+            event.preventDefault();
+            const className = document.getElementById('className').value.trim();
+            const workingDays = parseInt(document.getElementById('workingDays').value);
+            const subjectsPerDay = parseInt(document.getElementById('subjectsPerDay').value);
+            const totalSubjects = parseInt(document.getElementById('totalSubjects').value);
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!className || workingDays < 1 || workingDays > 7 || subjectsPerDay < 1 || subjectsPerDay > 8 || totalSubjects < 1) {
+                errorMessage.textContent = "Please enter valid inputs.";
+                return;
+            }
+
+            const totalHours = workingDays * subjectsPerDay;
+            document.getElementById('totalHours').value = totalHours;
+
+            // Pass data to second form
+            document.getElementById('hiddenClassName').value = className;
+            document.getElementById('hiddenWorkingDays').value = workingDays;
+            document.getElementById('hiddenSubjectsPerDay').value = subjectsPerDay;
+            document.getElementById('hiddenTotalSubjects').value = totalSubjects;
+
+            const container = document.getElementById('subjectHoursContainer');
+            container.innerHTML = '<h3>Enter Subject Hours:</h3>';
+
+            for (let i = 0; i < totalSubjects; i++) {
+                container.innerHTML += `<input type="text" name="subjectNames" placeholder="Subject Name" required>
+                                        <input type="number" name="subjectHours" placeholder="Total Hours" min="1" required><br>`;
+            }
+
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+
+            const inputs = container.querySelectorAll('input[name="subjectHours"]');
+            const generateBtn = document.getElementById('generateBtn');
+
+            container.addEventListener('input', () => {
+                let enteredHours = 0;
+                inputs.forEach(input => enteredHours += parseInt(input.value) || 0);
+                generateBtn.disabled = enteredHours !== totalHours;
+                errorMessage.textContent = enteredHours !== totalHours ? "Total subject hours must match total weekly hours!" : "";
+            });
+        }
+    </script>
+</body>
+</html>

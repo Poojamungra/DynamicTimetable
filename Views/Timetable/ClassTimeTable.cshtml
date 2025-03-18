@@ -1,0 +1,75 @@
+﻿@model dynamic
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Generated Timetable</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Timetable for Class: @ViewBag.ClassName</h1>
+    <table>
+        <thead>
+            <tr>
+                @for (int day = 1; day <= ViewBag.WorkingDays; day++)
+                {
+                    <th>Day @day</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < ViewBag.SubjectsPerDay; i++)
+            {
+                <tr>
+                    @for (int j = 0; j < ViewBag.WorkingDays; j++)
+                    {
+                        <td>@ViewBag.Timetable[i, j]</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/Timetable/CreateTimeTable">Create New Timetable</a>
+</body>
+</html>
