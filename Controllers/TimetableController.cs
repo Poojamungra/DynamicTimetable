@@ -40,19 +40,31 @@ namespace DynamicTimetable.Controllers
             Random rnd = new Random();
             subjectPool = subjectPool.OrderBy(x => rnd.Next()).ToList();
 
-            // Generate Timetable ensuring no subject repeats in one day
+            // Generate Timetable ensuring subjects are properly distributed based on hours
             string[,] timetable = new string[subjectsPerDay, workingDays];
             int index = 0;
+
             for (int j = 0; j < workingDays; j++)
             {
                 HashSet<string> usedSubjects = new HashSet<string>();
                 for (int i = 0; i < subjectsPerDay; i++)
                 {
-                    // Find a subject that hasn't been used that day
-                    string subject = subjectPool.FirstOrDefault(s => !usedSubjects.Contains(s));
+                    // Ensure subjects are distributed according to their weekly hours
+                    string subject = subjectPool.FirstOrDefault(s => !usedSubjects.Contains(s)) ?? subjectPool.First();
                     timetable[i, j] = subject;
                     usedSubjects.Add(subject);
                     subjectPool.Remove(subject);
+                }
+
+                // Refill the pool if subjects run out to maintain distribution
+                if (subjectPool.Count < subjectsPerDay)
+                {
+                    for (int i = 0; i < subjectNames.Length; i++)
+                    {
+                        int remainingHours = subjectHours[i] - timetable.Cast<string>().Count(s => s == subjectNames[i]);
+                        subjectPool.AddRange(Enumerable.Repeat(subjectNames[i], remainingHours));
+                    }
+                    subjectPool = subjectPool.OrderBy(x => rnd.Next()).ToList();
                 }
             }
 
